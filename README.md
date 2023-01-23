@@ -52,7 +52,7 @@ of the environment). Let's change the default settings (try this on a
 beefy machine!):
 
 ```shell
-$ python -m torchbeast.monobeast \
+$ taskset --cpu-list 0,1,2,3,4,5,6,7,8,9,10,11 python -m torchbeast.monobeast \
      --env PongNoFrameskip-v4 \
      --num_actors 45 \
      --total_steps 30000000 \
@@ -62,8 +62,13 @@ $ python -m torchbeast.monobeast \
      --batch_size 4 \
      --unroll_length 80 \
      --num_buffers 60 \
-     --num_threads 4 \
+     --num_threads 2 \
      --xpid example
+```
+
+```
+Costa:
+taskset --cpu-list 0,1,2,3  python monobeast.py  --num_actors 56 --total_steps 50000000 --learning_rate 0.0006 --epsilon 0.01 --entropy_cost 0.01 --batch_size 32 --unroll_length 20 --num_threads 1
 ```
 
 Results are logged to `~/logs/torchbeast/latest` and a checkpoint file is
