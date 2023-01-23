@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import argparse
+from collections import defaultdict
+from distutils.util import strtobool
 import logging
 import os
 import pprint
@@ -24,6 +26,7 @@ import typing
 
 os.environ["OMP_NUM_THREADS"] = "1"  # Necessary for multithreading.
 
+import numpy as np
 import torch
 from torch import multiprocessing as mp
 from torch import nn
@@ -34,6 +37,8 @@ from torchbeast.core import environment
 from torchbeast.core import file_writer
 from torchbeast.core import prof
 from torchbeast.core import vtrace
+from torch.utils.tensorboard import SummaryWriter
+
 
 
 # yapf: disable
@@ -91,6 +96,16 @@ parser.add_argument("--epsilon", default=0.01, type=float,
                     help="RMSProp epsilon.")
 parser.add_argument("--grad_norm_clipping", default=40.0, type=float,
                     help="Global gradient norm clip.")
+parser.add_argument("--exp-name", type=str, default=os.path.basename(__file__).rstrip(".py"),
+    help="the name of this experiment")
+parser.add_argument("--wandb-project-name", type=str, default="cleanRL",
+    help="the wandb's project name")
+parser.add_argument("--wandb-entity", type=str, default=None,
+    help="the entity (team) of wandb's project")
+parser.add_argument("--capture-video", type=lambda x: bool(strtobool(x)), default=False, nargs="?", const=True,
+    help="whether to capture videos of the agent performances (check out `videos` folder)")
+parser.add_argument("--track", type=lambda x: bool(strtobool(x)), default=False, nargs="?", const=True,
+    help="if toggled, this experiment will be tracked with Weights and Biases")
 # yapf: enable
 
 
@@ -322,6 +337,25 @@ def train(flags):  # pylint: disable=too-many-branches, too-many-statements
     plogger = file_writer.FileWriter(
         xpid=flags.xpid, xp_args=flags.__dict__, rootdir=flags.savedir
     )
+    writer = SummaryWriter()
+    run_name = f"{flags.env}__{flags.exp_name}__{int(time.time())}"
+    if flags.track:
+        import wandb
+
+        wandb.init(
+            project=flags.wandb_project_name,
+            entity=flags.wandb_entity,
+            sync_tensorboard=True,
+            config=vars(flags),
+            name=run_name,
+            monitor_gym=True,
+            save_code=True,
+        )
+    writer = SummaryWriter(f"runs/{run_name}")
+    writer.add_text(
+        "hyperparameters",
+        "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(flags).items()])),
+    )
     checkpointpath = os.path.expandvars(
         os.path.expanduser("%s/%s/%s" % (flags.savedir, flags.xpid, "model.tar"))
     )
@@ -431,6 +465,9 @@ def train(flags):  # pylint: disable=too-many-branches, too-many-statements
                 to_log = dict(step=step)
                 to_log.update({k: stats[k] for k in stat_keys})
                 plogger.log(to_log)
+                for k in stat_keys:
+                    if not np.isnan(stats[k]):
+                        writer.add_scalar(k, stats[k], step)
                 step += T * B
 
         if i == 0:
@@ -642,6 +679,7 @@ def create_env(flags):
             clip_rewards=False,
             frame_stack=True,
             scale=False,
+            episode_life=False,
         )
     )
 
