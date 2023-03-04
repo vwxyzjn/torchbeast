@@ -18,6 +18,7 @@ from distutils.util import strtobool
 import logging
 import os
 import pprint
+import sys
 import threading
 import time
 import timeit
@@ -542,28 +543,6 @@ def train(flags):  # pylint: disable=too-many-branches, too-many-statements
                 pprint.pformat(stats),
             )
     except KeyboardInterrupt:
-
-        # plot policy_version2frequency
-        import matplotlib.pyplot as plt
-        print(policy_version2frequency)
-        plt.bar(policy_version2frequency.keys(), policy_version2frequency.values())
-        plt.xlabel("policy_version")
-        plt.ylabel("number of trajectories")
-        plt.tight_layout()
-        plt.savefig("policy_version2frequency.png")
-
-        # plot policy_update2policy_version as stacked bar chart
-        import pandas as pd
-        import seaborn as sns
-        # get color palette
-        pal = sns.color_palette("Set2", len(policy_version2frequency))
-        df = pd.DataFrame(policy_update2policy_version).T
-        df.plot.bar(stacked=True, color=pal)
-        plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
-        plt.xlabel("policy_update")
-        plt.ylabel("number of trajectories")
-        plt.tight_layout()
-        plt.savefig("policy_update2policy_version.png")
         return  # Try joining actors then quit.
     else:
         for thread in threads:
@@ -573,9 +552,33 @@ def train(flags):  # pylint: disable=too-many-branches, too-many-statements
         for _ in range(flags.num_actors):
             free_queue.put(None)
         for actor in actor_processes:
-            actor.join(timeout=1)
+            actor.join(timeout=0.001)
 
+    # plot policy_version2frequency
+    import matplotlib.pyplot as plt
+    print(policy_version2frequency)
+    plt.bar(policy_version2frequency.keys(), policy_version2frequency.values())
+    plt.xlabel("policy version")
+    plt.ylabel("number of trajectories")
+    plt.tight_layout()
+    plt.savefig("policy_version2frequency.png")
+    plt.savefig("policy_version2frequency.pdf")
 
+    # plot policy_update2policy_version as stacked bar chart
+    import pandas as pd
+    import seaborn as sns
+    # get color palette
+    pal = sns.color_palette("Set2", len(policy_version2frequency))
+    df = pd.DataFrame(policy_update2policy_version).T
+    df.plot.bar(stacked=True, color=pal)
+    plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+    plt.xlabel("policy update")
+    plt.ylabel("number of trajectories")
+    plt.tight_layout()
+    plt.savefig("policy_update2policy_version.png")
+    plt.savefig("policy_update2policy_version.pdf")
+    
+    sys.exit()
 
     checkpoint()
     plogger.close()
