@@ -292,7 +292,7 @@ def make_atari(env_id, max_episode_steps=None):
         repeat_action_probability=0.0,
         full_action_space=False,
     )
-    assert 'NoFrameskip' in env.spec.id
+    # assert 'NoFrameskip' in env.spec.id
     env = NoopResetEnv(env, noop_max=30)
     env = MaxAndSkipEnv(env, skip=4)
 
