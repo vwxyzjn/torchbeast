@@ -49,7 +49,7 @@ class NoopResetEnv(gym.Wrapper):
         if self.override_num_noops is not None:
             noops = self.override_num_noops
         else:
-            noops = self.unwrapped.np_random.randint(1, self.noop_max + 1) #pylint: disable=E1101
+            noops = self.unwrapped.np_random.integers(1, self.noop_max + 1) #pylint: disable=E1101
         assert noops > 0
         obs = None
         for _ in range(noops):
@@ -287,12 +287,13 @@ class LazyFrames(object):
         return self._force()[..., i]
 
 def make_atari(env_id, max_episode_steps=None):
-    env = gym.make(
-        env_id,
-        repeat_action_probability=0.0,
-        full_action_space=False,
-    )
-    # assert 'NoFrameskip' in env.spec.id
+    env = gym.make(env_id)
+    # env = gym.make(
+    #     env_id,
+    #     repeat_action_probability=0.0,
+    #     full_action_space=False,
+    # )
+    assert 'NoFrameskip' in env.spec.id
     env = NoopResetEnv(env, noop_max=30)
     env = MaxAndSkipEnv(env, skip=4)
 

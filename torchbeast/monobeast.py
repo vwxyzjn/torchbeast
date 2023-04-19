@@ -32,7 +32,7 @@ from torch import multiprocessing as mp
 from torch import nn
 from torch.nn import functional as F
 
-from torchbeast import atari_wrappers
+from torchbeast import envpool_atari
 from torchbeast.core import environment
 from torchbeast.core import file_writer
 from torchbeast.core import prof
@@ -673,15 +673,7 @@ Net = AtariNet
 
 
 def create_env(flags):
-    return atari_wrappers.wrap_pytorch(
-        atari_wrappers.wrap_deepmind(
-            atari_wrappers.make_atari(flags.env),
-            clip_rewards=False,
-            frame_stack=True,
-            scale=False,
-            episode_life=False,
-        )
-    )
+    return envpool_atari.create_env(flags.env)
 
 
 def main(flags):
