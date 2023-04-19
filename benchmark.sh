@@ -12,7 +12,7 @@ python -m cleanrl_utils.benchmark \
 
 # debug
 python benchmark.py \
-    --env-ids Alien-v5 \
+    --env-ids Breakout-v5 \
     --command "python -m torchbeast.monobeast --num_actors 10 --total_steps 50000000 --learning_rate 0.0006 --epsilon 0.01 --entropy_cost 0.01 --batch_size 32 --unroll_length 20 --wandb-project-name torchbeast --track" \
     --num-seeds 1 \
     --start-seed 1 \
