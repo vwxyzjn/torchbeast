@@ -98,7 +98,7 @@ parser.add_argument("--grad_norm_clipping", default=40.0, type=float,
                     help="Global gradient norm clip.")
 parser.add_argument("--exp-name", type=str, default=os.path.basename(__file__).rstrip(".py"),
     help="the name of this experiment")
-parser.add_argument("--wandb-project-name", type=str, default="cleanRL",
+parser.add_argument("--wandb-project-name", type=str, default="torchbeast",
     help="the wandb's project name")
 parser.add_argument("--wandb-entity", type=str, default=None,
     help="the entity (team) of wandb's project")

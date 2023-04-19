@@ -170,7 +170,7 @@ $ python setup.py install
 To start both the environment servers and the learner process, run
 
 ```shell
-$ python -m torchbeast.polybeast
+$ python -m torchbeast.polybeast --num_servers 10
 ```
 
 The environment servers and the learner process can also be started separately:
